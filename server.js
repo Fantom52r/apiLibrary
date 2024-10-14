@@ -1,11 +1,12 @@
 const express = require("express");
+const dotenv = require("dotenv");
 const cors = require("cors");
 const morgan = require("morgan");
-const dotenv = require("dotenv");
-// const mongoose = require("mongoose");
-const path = require("path");
+const connectDB = require("./config/database");
 
-dotenv.config({ path: path.join(__dirname, ".env") });
+dotenv.config();
+
+connectDB();
 
 const app = express();
 
@@ -13,32 +14,19 @@ app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
 
-// mongoose
-//   .conntect(process.env.MONGO_URL, {
-//     useNewUrlParser: true,
-//     useUnifiedTopology: true,
-//   })
-//   .then(() => console.log("Подключились к БД"))
-//   .catch((er) => console.error(er));                        потом ДОБАВИТЬ подключение к базе данных
-
-// app.use("/reader", require("./routes/readerRoutes"));
-// app.use("book", require("./routes/bookRoutes"));
+app.use("/reader", require("./routes/readerRoutes"));
+app.use("/book", require("./routes/bookRoutes"));
 
 app.use((req, res, next) => {
-  res.status(404).json({
-    message: "Путь не найден",
-  });
+  res.status(404).json({ message: "Route not found" });
 });
 
-app.use((er, req, res, next) => {
-  console.error(er.stack);
-  res.status(505).json({
-    message: "Ошибка на стороне сервера",
-  });
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "Server error" });
 });
 
-const PORT = 3005;
-
+const PORT = process.env.PORT || 3005;
 app.listen(PORT, () => {
-  console.log(`Сервер работает http://127.0.0.1: ${PORT}`);
+  console.log(`Server running on http://127.0.0.1:${PORT}`);
 });
